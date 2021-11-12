@@ -5,20 +5,35 @@ import './App.css';
 
 function App() {
   const [isOpen, setIsOpen] = useState(true);
+  const [messages, setMessages] = useState([]);
+  const [value, setValue] = useState(' ');
   const endpoint = useRef('');
   const inputRef = useRef(null);
+  const messagesRef = useRef(null);
+  const socket = useRef();
 
   const handleClick = () => {
     endpoint.current = `http://${inputRef.current.value}:2021`;
-    fetch(`http://localhost:2021/conectar?host=http://${endpoint.current}`);
+    setIsOpen(false);
+    // fetch(`http://localhost:2021/conectar?host=http://${endpoint.current}`);
+  };
+
+  const submitMessage = (e) => {
+    e.preventDefault();
+    console.log(socket);
+    socket.current.emit('Mensaje ASCP', value);
+    setValue('');
   };
 
   useEffect(() => {
-    const socket = Socket();
-    socket.on('Mensaje ASCP', function (msg) {
-      window.scrollTo(0, document.body.scrollHeight);
+    socket.current = Socket('http://localhost:2021');
+    socket.current.on('Mensaje ASCP', (msg) => {
+      console.log('se recibio un mensaje', typeof msg);
+      const p = document.createElement('p');
+      p.innerHTML = msg;
+      messagesRef.current.appendChild(p);
     });
-  });
+  }, []);
 
   return (
     <div className="app">
@@ -35,7 +50,19 @@ function App() {
           </button>
         </div>
       </ReactModal>
-      <div className={'message-ui'}></div>
+      <div className={'message-ui'}>
+        <div ref={messagesRef}></div>
+        <form onSubmit={submitMessage}>
+          <input
+            autoFocus
+            value={value}
+            placeholder="Type your message"
+            onChange={(e) => {
+              setValue(e.currentTarget.value);
+            }}
+          />
+        </form>
+      </div>
     </div>
   );
 }

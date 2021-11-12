@@ -3,24 +3,24 @@ const { ok } = require('assert');
 const bodyParser = require('body-parser');
 
 // Servidor HTTP
-const http = require('http').Server(app);
+const http = require('http').createServer(app);
 
 // Servidor para socket.io, aquí RECIBIMOS mensajes
 // Nos aseguramos que podemos recibir referencias cruzadas
-const io = require('socket.io')(http, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST'],
-  },
-});
+const io = require('socket.io')(http);
 
 // Se almacenan los mensajes recibidos
 var mensajes = [];
+let interval;
 
 io.on('connection', (socket) => {
+  socket.on('disconnect', () => {
+    console.log('cliente disconnected');
+    clearInterval(interval);
+  });
+
   socket.on('Mensaje ASCP', (msg) => {
     console.log('se recibio un mensaje: ', msg);
-    io.emit('Mensaje ASCP', msg);
     mensajes.push(msg);
   });
 

@@ -1,35 +1,41 @@
-import { useEffect, useState } from "react";
-import Socket from "socket.io-client";
-import ReactModal from "react-modal";
-import "./App.css";
-
-const ENDPOINT = "http://localhost:3000";
+import { useEffect, useRef, useState } from 'react';
+import Socket from 'socket.io-client';
+import ReactModal from 'react-modal';
+import './App.css';
 
 function App() {
   const [isOpen, setIsOpen] = useState(true);
-  var socket = Socket(ENDPOINT);
+  const endpoint = useRef('');
+  const inputRef = useRef(null);
+
+  const handleClick = () => {
+    endpoint.current = `http://${inputRef.current.value}:2021`;
+    fetch(`http://localhost:2021/conectar?host=http://${endpoint.current}`);
+  };
 
   useEffect(() => {
-    socket.on("Mensaje ASCP", function (msg) {
+    const socket = Socket();
+    socket.on('Mensaje ASCP', function (msg) {
       window.scrollTo(0, document.body.scrollHeight);
     });
   });
 
   return (
     <div className="app">
-      <ReactModal isOpen={isOpen} className={"connection-modal"}>
-        <div className={"connection-modal-content"}>
+      <ReactModal isOpen={isOpen} className={'connection-modal'}>
+        <div className={'connection-modal-content'}>
           <h3>Introduce la ip a conectar</h3>
-          <input type="text" name="host" class="ip-input" />
+          <input ref={inputRef} type="text" name="host" className="ip-input" />
           <button
             type="submit"
-            class="connect-button"
-            onClick={() => setIsOpen(false)}
+            className="connect-button"
+            onClick={handleClick}
           >
             Conectar
           </button>
         </div>
       </ReactModal>
+      <div className={'message-ui'}></div>
     </div>
   );
 }

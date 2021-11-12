@@ -7,11 +7,11 @@ const http = require('http').Server(app);
 
 // Servidor para socket.io, aquí RECIBIMOS mensajes
 // Nos aseguramos que podemos recibir referencias cruzadas
-const io = require("socket.io")(http, {
+const io = require('socket.io')(http, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
 });
 
 // Se almacenan los mensajes recibidos
@@ -19,21 +19,24 @@ var mensajes = [];
 
 io.on('connection', (socket) => {
   socket.on('Mensaje ASCP', (msg) => {
-    console.log('se recibio un mensaje: ', msg)
+    console.log('se recibio un mensaje: ', msg);
     io.emit('Mensaje ASCP', msg);
-    mensajes.push(msg)
+    mensajes.push(msg);
+  });
+
+  socket.on('test', (msg) => {
+    console.log('se recibio el mensaje en test: ', msg);
   });
 });
 
 // Cliente
-const ioc = require("socket.io-client");
+const ioc = require('socket.io-client');
 
 // Argumentos de linea de comandos
 var myArgs = process.argv.slice(2);
 
 // Puerto es el primer argumento que se pasa
 const port = process.env.PORT || myArgs[0];
-
 
 // Se usa para ENVIAR mensajes
 var socketOut = null;
@@ -54,22 +57,22 @@ app.post('/test', (req, res) => {
 
 // Conectar a otro host
 app.get('/conectar', (req, res) => {
-    console.log(req.query.host);
-    res.send("Host "+ req.query.host);
-    socketOut = ioc.connect(req.query.host)
-    console.log(socketOut);
+  console.log(req.query.host);
+  res.send('Host ' + req.query.host);
+  socketOut = ioc.connect(req.query.host);
+  console.log(socketOut);
 });
 
 // Enviar mensaje al host al que se encuentra conectado
 app.get('/enviar_mensaje', (req, res) => {
-  res.send("Mensaje "+ req.query.msg);
-  socketOut.emit('Mensaje ASCP',req.query.msg);
+  res.send('Mensaje ' + req.query.msg);
+  socketOut.emit('Mensaje ASCP', req.query.msg);
 });
 
 //Enviar mensaje al host al que se encuentra conectado
 app.post('/enviar_mensaje', (req, res) => {
   console.log('Got body:', req.body);
-  res.send("Mensaje: "+ req.body.data);
+  res.send('Mensaje: ' + req.body.data);
   socketOut.emit('Mensaje ASCP', req.body);
 });
 

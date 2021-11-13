@@ -1,6 +1,9 @@
+const cors = require('cors');
 const app = require('express')();
 const { ok } = require('assert');
 const bodyParser = require('body-parser');
+
+app.use(cors());
 
 // Servidor HTTP
 const http = require('http').createServer(app);
@@ -9,19 +12,20 @@ const http = require('http').createServer(app);
 // Nos aseguramos que podemos recibir referencias cruzadas
 const io = require('socket.io')(http);
 
-// Se almacenan los mensajes recibidos
-var mensajes = [];
-let interval;
-
 io.on('connection', (socket) => {
+  console.log('client connected');
   socket.on('disconnect', () => {
     console.log('cliente disconnected');
-    clearInterval(interval);
+  });
+
+  socket.on('enviar-mensaje', (msg) => {
+    console.log('se recibio un mensaje desde el front', msg);
+    socket.emit('Mensaje ASCP', msg);
   });
 
   socket.on('Mensaje ASCP', (msg) => {
-    console.log('se recibio un mensaje: ', msg);
-    mensajes.push(msg);
+    console.log('se recibio un mensaje desde el back: ', msg);
+    socket.broadcast.emit('recibir-mensaje', msg);
   });
 
   socket.on('test', (msg) => {
@@ -57,7 +61,7 @@ app.post('/test', (req, res) => {
 
 // Conectar a otro host
 app.get('/conectar', (req, res) => {
-  console.log(req.query.host);
+  console.log('host recibido: ', req.query.host);
   res.send('Host ' + req.query.host);
   socketOut = ioc.connect(req.query.host);
   console.log(socketOut);

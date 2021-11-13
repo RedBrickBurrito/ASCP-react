@@ -15,23 +15,34 @@ function App() {
   const handleClick = () => {
     endpoint.current = `http://${inputRef.current.value}:2021`;
     setIsOpen(false);
-    // fetch(`http://localhost:2021/conectar?host=http://${endpoint.current}`);
+    fetch(`http://localhost:2021/conectar?host=${endpoint.current}`);
   };
 
   const submitMessage = (e) => {
     e.preventDefault();
-    console.log(socket);
-    socket.current.emit('Mensaje ASCP', value);
+    fetch('http://localhost:2021/enviar_mensaje', {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify({ function: 1, data: value }),
+    });
+    addMessageToList(value);
     setValue('');
+  };
+
+  const addMessageToList = (message) => {
+    const p = document.createElement('p');
+    p.innerHTML = message;
+    messagesRef.current.appendChild(p);
   };
 
   useEffect(() => {
     socket.current = Socket('http://localhost:2021');
-    socket.current.on('Mensaje ASCP', (msg) => {
+    socket.current.on('recibir-mensaje', (msg) => {
       console.log('se recibio un mensaje', typeof msg);
-      const p = document.createElement('p');
-      p.innerHTML = msg;
-      messagesRef.current.appendChild(p);
+      addMessageToList(msg.data);
     });
   }, []);
 

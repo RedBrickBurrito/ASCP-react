@@ -26,17 +26,14 @@ io.on('connection', (socket) => {
   });
 
   socket.on('enviar-mensaje', (msg) => {
-    console.log('se recibio un mensaje desde el front', msg);
     socket.emit('Mensaje ASCP', msg);
   });
 
   socket.on('Mensaje ASCP', (msg) => {
-    console.log('se recibio un mensaje desde el back: ', msg);
-    socket.broadcast.emit('recibir-mensaje', msg);
-  });
-
-  socket.on('test', (msg) => {
-    console.log('se recibio el mensaje en test: ', msg);
+    const message = decodeDesECB(msg.data, key);
+    console.log('mensaje recibido ', msg.data);
+    console.log('mensaje desencriptado ', message);
+    socket.broadcast.emit('recibir-mensaje', { function: 1, data: message });
   });
 });
 
@@ -61,6 +58,19 @@ const encodeDesECB = (textToEncode, keyString) => {
   return c;
 };
 
+const decodeDesECB = (textToDecode, keyString) => {
+  if (keyString === null) return textToDecode;
+
+  const keyBuffer = Buffer.from(keyString);
+
+  const cipher = crypto.createDecipheriv('des-ecb', keyBuffer, '');
+
+  let c = cipher.update(textToDecode, 'base64', 'utf8');
+  c += cipher.final('utf8');
+
+  return c;
+};
+
 // Permitimos JSON
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -69,7 +79,6 @@ app.use(bodyParser.raw());
 // Conectar a otro host
 app.get('/conectar', (req, res) => {
   socketOut = ioc.connect(req.query.host);
-  console.log(socketOut);
   res.send('Host ' + req.query.host);
 });
 

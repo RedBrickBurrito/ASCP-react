@@ -4,23 +4,39 @@ import ReactModal from 'react-modal';
 import './App.css';
 
 function App() {
-  const [isOpen, setIsOpen] = useState(true);
-  const [messages, setMessages] = useState([]);
+  const [ipModalOpen, setIpModalOpen] = useState(true);
+  const [keyModalOpen, setKeyModalOpen] = useState(false);
   const [value, setValue] = useState(' ');
   const endpoint = useRef('');
-  const inputRef = useRef(null);
+  const key = useRef('');
+  const ipInputRef = useRef(null);
+  const keyInputRef = useRef(null);
   const messagesRef = useRef(null);
   const socket = useRef();
 
-  const handleClick = () => {
-    endpoint.current = `http://${inputRef.current.value}:2021`;
-    setIsOpen(false);
-    fetch(`http://localhost:2021/conectar?host=${endpoint.current}`);
+  const handleIpClick = async () => {
+    endpoint.current = `http://${ipInputRef.current.value}:2021`;
+    await fetch(`http://localhost:2021/conectar?host=${endpoint.current}`);
+    setIpModalOpen(false);
+    setKeyModalOpen(true);
   };
 
-  const submitMessage = (e) => {
-    e.preventDefault();
+  const handleKeyClick = () => {
+    key.current = keyInputRef.current.value;
     fetch('http://localhost:2021/enviar_mensaje', {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify({ function: 2, data: key.current }),
+    });
+    setKeyModalOpen(false);
+  };
+
+  const submitMessage = async (e) => {
+    e.preventDefault();
+    await fetch('http://localhost:2021/enviar_mensaje', {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
@@ -41,23 +57,48 @@ function App() {
   useEffect(() => {
     socket.current = Socket('http://localhost:2021');
     socket.current.on('recibir-mensaje', (msg) => {
-      console.log('se recibio un mensaje', typeof msg);
       addMessageToList(msg.data);
     });
   }, []);
 
   return (
     <div className="app">
-      <ReactModal isOpen={isOpen} className={'connection-modal'}>
+      <ReactModal isOpen={ipModalOpen} className={'connection-modal'}>
         <div className={'connection-modal-content'}>
           <h3>Introduce la ip a conectar</h3>
-          <input ref={inputRef} type="text" name="host" className="ip-input" />
+          <input
+            ref={ipInputRef}
+            type="text"
+            id="host"
+            name="host"
+            className="ip-input"
+          />
           <button
             type="submit"
             className="connect-button"
-            onClick={handleClick}
+            onClick={handleIpClick}
           >
             Conectar
+          </button>
+        </div>
+      </ReactModal>
+      <ReactModal isOpen={keyModalOpen} className={'connection-modal'}>
+        <div className={'connection-modal-content'}>
+          <h3>Introduce la llave para encriptar</h3>
+          <input
+            ref={keyInputRef}
+            type="text"
+            id="key"
+            name="key"
+            maxLength={8}
+            className="ip-input"
+          />
+          <button
+            type="submit"
+            className="connect-button"
+            onClick={handleKeyClick}
+          >
+            Enviar llave
           </button>
         </div>
       </ReactModal>

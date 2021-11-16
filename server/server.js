@@ -66,7 +66,12 @@ const decodeDesECB = (textToDecode, keyString) => {
   const cipher = crypto.createDecipheriv('des-ecb', keyBuffer, '');
 
   let c = cipher.update(textToDecode, 'base64', 'utf8');
-  c += cipher.final('utf8');
+  try {
+    c += cipher.final('utf8');
+  } catch (e) {
+    console.error(e);
+    return 'No se pudo desencriptar el texto ' + textToDecode;
+  }
 
   return c;
 };

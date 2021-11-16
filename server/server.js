@@ -17,7 +17,12 @@ const http = require('http').createServer(app);
 
 // Servidor para socket.io, aquí RECIBIMOS mensajes
 // Nos aseguramos que podemos recibir referencias cruzadas
-const io = require('socket.io')(http);
+const io = require('socket.io')(http, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
+});
 
 io.on('connection', (socket) => {
   console.log('client connected');

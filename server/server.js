@@ -107,6 +107,7 @@ var secretKey = '';
 var sharedKey = '';
 
 const computePublicKey = (y, a = ALPHA, q = Q) => {
+  console.log('y', y);
   if (y >= q) {
     return;
   }
@@ -114,18 +115,19 @@ const computePublicKey = (y, a = ALPHA, q = Q) => {
 };
 
 const computeSharedKey = (a = ALPHA, q = Q) => {
-  sharedKey = fastExp(bigInt(othersKey), secretKey, q);
+  const bigIntKey = bigInt(othersKey);
+  sharedKey = fastExp(bigIntKey, secretKey, q);
   console.log('la llave compartida es ', sharedKey);
 };
 
 const fastExp = (base, exp, q) => {
-  if (exp == 0) {
+  if (exp.equals(0)) {
     return 1;
   } else {
-    if (exp % 2 == 0) {
-      return fastExp((base * base) % q, exp / 2, q);
+    if (exp.mod(2) == 0) {
+      return fastExp(base.multiply(base).mod(q), exp.divide(2), q);
     } else {
-      return (base * fastExp(base, exp - 1, q)) % q;
+      return base.multiply(fastExp(base, exp.minus(1), q)).mod(q);
     }
   }
 };

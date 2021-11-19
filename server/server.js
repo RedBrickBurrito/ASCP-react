@@ -172,7 +172,7 @@ app.post('/init_comm', async (req, res) => {
   if (!publicKey) {
     res.status(400).send('No se recibio una llave valida.');
   } else {
-    socketOut.emit('SIMP_INIT_COMM', publicKey);
+    socketOut.emit('Mensaje ASCP', publicKey);
     isAlice = true;
     res.sendStatus(200);
   }
@@ -186,7 +186,7 @@ app.post('/key_comp', (req, res) => {
   if (!publicKey) {
     res.status(400).send('No se recibio una llave valida.');
   } else {
-    socketOut.emit('SIMP_KEY_COMPUTED', publicKey);
+    socketOut.emit('Mensaje ASCP', publicKey);
     computeSharedKey();
     res.sendStatus(200);
   }

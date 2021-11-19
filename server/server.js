@@ -3,6 +3,7 @@ const app = require('express')();
 const { ok } = require('assert');
 const bodyParser = require('body-parser');
 const crypto = require('crypto');
+const bigInt = require('big-integer');
 
 app.use(cors());
 
@@ -98,14 +99,14 @@ const decodeDesECB = (textToDecode, keyString) => {
 };
 
 // Diffie-Hellman
-const ALPHA = 17123207;
-const Q = 2426697107;
+const ALPHA = bigInt(17123207);
+const Q = bigInt(2426697107);
 var isAlice = null;
 var othersKey = '';
 var secretKey = '';
 var sharedKey = '';
 
-const computePublicKey = (a, q, y) => {
+const computePublicKey = (y, a = ALPHA, q = Q) => {
   if (y >= q) {
     return;
   }
@@ -113,7 +114,7 @@ const computePublicKey = (a, q, y) => {
 };
 
 const computeSharedKey = (a = ALPHA, q = Q) => {
-  sharedKey = fastExp(othersKey, secretKey, q);
+  sharedKey = fastExp(bigInt(othersKey), secretKey, q);
   console.log('la llave compartida es ', sharedKey);
 };
 
@@ -154,8 +155,8 @@ app.post('/enviar_mensaje', (req, res) => {
 });
 
 app.post('/init_comm', async (req, res) => {
-  const { q, a, y } = req.body.data;
-  const publicKey = computePublicKey(a, q, y);
+  const { y } = req.body.data;
+  const publicKey = computePublicKey(bigInt(y));
   secretKey = y;
 
   if (!publicKey) {
@@ -168,8 +169,8 @@ app.post('/init_comm', async (req, res) => {
 });
 
 app.post('/key_comp', (req, res) => {
-  const { q, a, y } = req.body.data;
-  const publicKey = computePublicKey(a, q, y);
+  const { y } = req.body.data;
+  const publicKey = computePublicKey(bigInt(y));
   secretKey = y;
 
   if (!publicKey) {

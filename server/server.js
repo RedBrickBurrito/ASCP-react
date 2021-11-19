@@ -48,7 +48,7 @@ io.on('connection', (socket) => {
         break;
       case 2:
         isAlice = false;
-        othersKey = msg.data;
+        othersKey = msg.data.y;
         console.log(
           'se inicio una comunicacion por parte de alice con llave publica ',
           othersKey
@@ -56,7 +56,7 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('set-bob', msg.data);
         break;
       case 3:
-        othersKey = msg.data;
+        othersKey = msg.data.y;
         console.log('se recibio la llave publica de bob ', othersKey);
         computeSharedKey();
         socket.broadcast.emit('shared-key', sharedKey);
@@ -172,7 +172,10 @@ app.post('/init_comm', async (req, res) => {
   if (!publicKey) {
     res.status(400).send('No se recibio una llave valida.');
   } else {
-    socketOut.emit('Mensaje ASCP', publicKey);
+    socketOut.emit('Mensaje ASCP', {
+      function: 2,
+      data: { q: Q, a: ALPHA, y: publicKey },
+    });
     isAlice = true;
     res.sendStatus(200);
   }
@@ -186,7 +189,10 @@ app.post('/key_comp', (req, res) => {
   if (!publicKey) {
     res.status(400).send('No se recibio una llave valida.');
   } else {
-    socketOut.emit('Mensaje ASCP', publicKey);
+    socketOut.emit('Mensaje ASCP', {
+      function: 3,
+      data: { q: Q, a: ALPHA, y: publicKey },
+    });
     computeSharedKey();
     res.sendStatus(200);
   }

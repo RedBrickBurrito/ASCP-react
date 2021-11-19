@@ -39,3 +39,63 @@
   color:azure;
   box-shadow: 0 8px 16px 0 rgba(124, 38, 38, 0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
 }
+
+.message-bubble-client {
+  border-radius: 1.15rem;
+  line-height: 1.25;
+  max-width: 75%;
+  padding: 0.5rem .875rem;
+  position: relative;
+  word-wrap: break-word;
+  align-self: flex-end;
+  background-color: #248bf5;
+  color: #fff; 
+}
+
+.message-bubble-client::before,
+.message-bubble-client::after {
+  bottom: -0.1rem;
+  content: "";
+  height: 1rem;
+  position: absolute;
+}
+
+.message-bubble-client::before {
+  border-bottom-left-radius: 0.8rem 0.7rem;
+  border-right: 1rem solid #248bf5;
+  right: -0.35rem;
+  transform: translate(0, -0.1rem);
+}
+
+.message-bubble-client::after {
+  background-color: #fff;
+  border-bottom-left-radius: 0.5rem;
+  right: -40px;
+  transform:translate(-30px, -2px);
+  width: 10px;
+}
+
+.message-bubble {
+  background-color: #fff;
+}
+
+.message-bubble-received {
+  align-items: flex-start;
+  background-color: #e5e5ea;
+  color: #000;
+}
+
+.message-bubble-received::before {
+  border-bottom-right-radius: 0.8rem 0.7rem;
+  border-left: 1rem solid #e5e5ea;
+  left: -0.35rem;
+  transform: translate(0, -0.1rem);
+}
+
+.message-bubble-received::after {
+  background-color: #fff;
+  border-bottom-right-radius: 0.5rem;
+  left: 20px;
+  transform: translate(-30px, -2px);
+  width: 10px;
+}

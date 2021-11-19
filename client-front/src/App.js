@@ -38,7 +38,7 @@ function App() {
         data: { q: 2426697107, a: 17123207, y: secretKey.current },
       }),
     });
-    if (response.status == 400) {
+    if (response.status === 400) {
       const text = await response.text();
       alert(text);
       return;
@@ -50,8 +50,8 @@ function App() {
     secretKey.current = keyInputRef.current.value;
     const response = await fetch(ENDPOINT + '/init_comm', {
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
       method: 'POST',
       body: JSON.stringify({
@@ -59,7 +59,7 @@ function App() {
         data: { q: 2426697107, a: 17123207, y: secretKey.current },
       }),
     });
-    if (response.status == 400) {
+    if (response.status === 400) {
       const text = await response.text();
       alert(text);
       return;
@@ -77,25 +77,33 @@ function App() {
     }
     await fetch('http://localhost:2021/enviar_mensaje', {
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ function: 1, data: value }),
     });
-    addMessageToList(value);
-    setValue('');
+    clientSentMessage(value);
+    setValue("");
+  };
+
+  const clientSentMessage = (message) => {
+    const p = document.createElement("p");
+    p.innerHTML = message;
+    p.className = "message-bubble-client";
+    messagesRef.current.appendChild(p);
   };
 
   const addMessageToList = (message) => {
-    const p = document.createElement('p');
+    const p = document.createElement("p");
     p.innerHTML = message;
+    p.className = "message-bubble-received";
     messagesRef.current.appendChild(p);
   };
 
   useEffect(() => {
-    socket.current = Socket('http://localhost:2021');
-    socket.current.on('recibir-mensaje', (msg) => {
+    socket.current = Socket("http://localhost:2021");
+    socket.current.on("recibir-mensaje", (msg) => {
       addMessageToList(msg.data);
     });
     socket.current.on("set-bob", (publicKey) => {
@@ -110,8 +118,8 @@ function App() {
 
   return (
     <div className="app">
-      <ReactModal isOpen={ipModalOpen} className={'connection-modal'}>
-        <div className={'connection-modal-content'}>
+      <ReactModal isOpen={ipModalOpen} className={"connection-modal"}>
+        <div className={"connection-modal-content"}>
           <h3>Introduce la ip a conectar</h3>
           <input
             ref={ipInputRef}
@@ -129,8 +137,8 @@ function App() {
           </button>
         </div>
       </ReactModal>
-      <ReactModal isOpen={keyModalOpen} className={'connection-modal'}>
-        <div className={'connection-modal-content'}>
+      <ReactModal isOpen={keyModalOpen} className={"connection-modal"}>
+        <div className={"connection-modal-content"}>
           <h3>Introduce la llave para encriptar</h3>
           <input
             ref={keyInputRef}
@@ -149,10 +157,13 @@ function App() {
           </button>
         </div>
       </ReactModal>
-      <div className={'message-ui'}>
-        <div ref={messagesRef}></div>
-        <form onSubmit={submitMessage}>
+      <div className={"message-ui"}>
+        <div ref={messagesRef} className="message-bubble"></div>
+      </div>
+    <div style={{bottom: 0, position: 'fixed', width: "100%", backgroundColor: "#0000007e"}}>
+    <form onSubmit={submitMessage}>
           <input
+            className="input-message-box"
             autoFocus
             value={value}
             placeholder="Type your message"
@@ -160,9 +171,15 @@ function App() {
               setValue(e.currentTarget.value);
             }}
           />
+          <button
+            type="submit"
+            className="send-message-button"
+            >
+              Send
+            </button>
         </form>
       </div>
-    </div>
+      </div>
   );
 }
 

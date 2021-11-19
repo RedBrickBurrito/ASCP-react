@@ -53,7 +53,7 @@ io.on('connection', (socket) => {
           'se inicio una comunicacion por parte de alice con llave publica ',
           othersKey
         );
-        socket.broadcast.emit('set-bob', msg.data);
+        socket.broadcast.emit('set-bob', msg.data.y);
         break;
       case 3:
         othersKey = msg.data.y;

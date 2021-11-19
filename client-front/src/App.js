@@ -98,8 +98,9 @@ function App() {
     socket.current.on('recibir-mensaje', (msg) => {
       addMessageToList(msg.data);
     });
-    socket.current.on('set-bob', () => {
-      setWhoAmI('B');
+    socket.current.on("set-bob", (publicKey) => {
+      setWhoAmI("B");
+      key.current = publicKey;
     });
     socket.current.on('shared-key', (sharedKey) => {
       console.log('se recibio la llave compartida ', sharedKey);

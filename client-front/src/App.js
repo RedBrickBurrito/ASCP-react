@@ -3,11 +3,15 @@ import Socket from 'socket.io-client';
 import ReactModal from 'react-modal';
 import './App.css';
 
+const ENDPOINT = 'http://localhost:2021';
+
 function App() {
   const [ipModalOpen, setIpModalOpen] = useState(true);
   const [keyModalOpen, setKeyModalOpen] = useState(false);
   const [value, setValue] = useState(' ');
+  const [whoAmI, setWhoAmI] = useState('');
   const endpoint = useRef('');
+  const secretKey = useRef('');
   const key = useRef('');
   const ipInputRef = useRef(null);
   const keyInputRef = useRef(null);
@@ -16,26 +20,61 @@ function App() {
 
   const handleIpClick = async () => {
     endpoint.current = `http://${ipInputRef.current.value}:2021`;
-    await fetch(`http://localhost:2021/conectar?host=${endpoint.current}`);
+    await fetch(`${ENDPOINT}/conectar?host=${endpoint.current}`);
     setIpModalOpen(false);
     setKeyModalOpen(true);
   };
 
-  const handleKeyClick = () => {
-    key.current = keyInputRef.current.value;
-    fetch('http://localhost:2021/enviar_mensaje', {
+  const handleKeyComp = async () => {
+    secretKey.current = keyInputRef.current.value;
+    const response = await fetch(ENDPOINT + '/key_comp', {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
       method: 'POST',
-      body: JSON.stringify({ function: 2, data: key.current }),
+      body: JSON.stringify({
+        function: 3,
+        data: { q: 2426697107, a: 17123207, y: secretKey.current },
+      }),
     });
+    if (response.status == 400) {
+      const text = await response.text();
+      alert(text);
+      return;
+    }
+    setKeyModalOpen(false);
+  };
+
+  const handleInitComm = async () => {
+    secretKey.current = keyInputRef.current.value;
+    const response = await fetch(ENDPOINT + '/init_comm', {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify({
+        function: 2,
+        data: { q: 2426697107, a: 17123207, y: secretKey.current },
+      }),
+    });
+    if (response.status == 400) {
+      const text = await response.text();
+      alert(text);
+      return;
+    }
+    setWhoAmI('A');
     setKeyModalOpen(false);
   };
 
   const submitMessage = async (e) => {
     e.preventDefault();
+    // key = the key both parties have agreed on through diffie-hellman
+    if (!key.current) {
+      alert('Aun no se recibe una llave del otro lado :(');
+      return;
+    }
     await fetch('http://localhost:2021/enviar_mensaje', {
       headers: {
         Accept: 'application/json',
@@ -58,6 +97,13 @@ function App() {
     socket.current = Socket('http://localhost:2021');
     socket.current.on('recibir-mensaje', (msg) => {
       addMessageToList(msg.data);
+    });
+    socket.current.on('set-bob', () => {
+      setWhoAmI('B');
+    });
+    socket.current.on('shared-key', (sharedKey) => {
+      console.log('se recibio la llave compartida ', sharedKey);
+      key.current = sharedKey;
     });
   }, []);
 
@@ -96,7 +142,7 @@ function App() {
           <button
             type="submit"
             className="connect-button"
-            onClick={handleKeyClick}
+            onClick={whoAmI ? handleKeyComp : handleInitComm}
           >
             Enviar llave
           </button>

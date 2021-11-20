@@ -83,24 +83,41 @@
   margin-bottom: 5%;
 }
 
+
 .message-bubble-received {
-  align-items: flex-start;
+  border-radius: 1.15rem;
+  line-height: 1.25;
+  max-width: 75%;
+  padding: 0.5rem .875rem;
+  position: relative;
+  word-wrap: break-word;
+  align-self: flex-start;
   background-color: #e5e5ea;
   color: #000;
 }
 
-.message-bubble-received::before {
+.message-bubble-received::before,
+.message-bubble-received::after {
+  bottom: -0.1rem;
+  content: "";
+  height: 1rem;
+  position: absolute;
+}
+
+
+.message-bubble-received:before {
   border-bottom-right-radius: 0.8rem 0.7rem;
-  border-left: 1rem solid #e5e5ea;
+  
+  border-right: 1rem solid #e5e5ea;
   left: -0.35rem;
   transform: translate(0, -0.1rem);
 }
 
 .message-bubble-received::after {
-  background-color: #fff;
+  background-color: rgb(43, 43, 43);
   border-bottom-right-radius: 0.5rem;
   left: 20px;
-  transform: translate(-30px, -2px);
+  transform:translate(-30px, -2px);
   width: 10px;
 }
 

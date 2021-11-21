@@ -39,3 +39,123 @@
   color:azure;
   box-shadow: 0 8px 16px 0 rgba(124, 38, 38, 0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
 }
+
+.message-bubble-client {
+  border-radius: 1.15rem;
+  line-height: 1.25;
+  max-width: 75%;
+  padding: 0.5rem .875rem;
+  position: relative;
+  word-wrap: break-word;
+  align-self: flex-end;
+  background-color: #cc0e0e;
+  color: #fff; 
+}
+
+.message-bubble-client::before,
+.message-bubble-client::after {
+  bottom: -0.1rem;
+  content: "";
+  height: 1rem;
+  position: absolute;
+}
+
+.message-bubble-client::before {
+  border-bottom-left-radius: 0.8rem 0.7rem;
+  
+  border-right: 1rem solid #cc0e0e;
+  right: -0.35rem;
+  transform: translate(0, -0.1rem);
+}
+
+.message-bubble-client::after {
+  background-color: rgb(43, 43, 43);
+  border-bottom-left-radius: 0.5rem;
+  right: -40px;
+  transform:translate(-30px, -2px);
+  width: 10px;
+}
+
+.message-bubble {
+  margin-left: 35%;
+  width: 40%;
+  background-color: rgb(43, 43, 43);
+  margin-bottom: 5%;
+}
+
+
+.message-bubble-received {
+  border-radius: 1.15rem;
+  line-height: 1.25;
+  max-width: 75%;
+  padding: 0.5rem .875rem;
+  position: relative;
+  word-wrap: break-word;
+  align-self: flex-start;
+  background-color: #e5e5ea;
+  color: #000;
+}
+
+.message-bubble-received::before,
+.message-bubble-received::after {
+  bottom: -0.1rem;
+  content: "";
+  height: 1rem;
+  position: absolute;
+}
+
+
+.message-bubble-received:before {
+  border-bottom-right-radius: 0.8rem 0.7rem;
+  
+  border-right: 1rem solid #e5e5ea;
+  left: -0.35rem;
+  transform: translate(0, -0.1rem);
+}
+
+.message-bubble-received::after {
+  background-color: rgb(43, 43, 43);
+  border-bottom-right-radius: 0.5rem;
+  left: 20px;
+  transform:translate(-30px, -2px);
+  width: 10px;
+}
+
+.input-message-box {
+    width:80%;
+    border:2px solid #aaa;
+    border-radius:4px;
+    margin:8px 0;
+    outline:none;
+    padding:8px;
+    box-sizing:border-box;
+    transition:.3s;
+    left: 5%;
+    margin-left: 6%;
+}
+
+.input-message-box:focus{
+  border-color:dodgerBlue;
+  box-shadow:0 0 8px 0 dodgerBlue;
+}
+
+.send-message-button {
+  width: 100px;
+  height: 36px;
+  border-radius: 18px;
+  background-color: #cc0e0e;
+  border: solid 1px transparent;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 300;
+  cursor: pointer;
+  transition: all .1s ease-in-out;
+  margin-left: 0.5%;
+}
+
+.send-message-button:hover {
+  background-color: transparent;
+    border-color: #cc0e0e;
+    transition: all .1s ease-in-out;
+    color: #cc0e0e;
+}

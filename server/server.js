@@ -3,6 +3,7 @@ const app = require('express')();
 const { ok } = require('assert');
 const bodyParser = require('body-parser');
 const crypto = require('crypto');
+const bigInt = require('big-integer');
 
 app.use(cors());
 
@@ -35,10 +36,34 @@ io.on('connection', (socket) => {
   });
 
   socket.on('Mensaje ASCP', (msg) => {
-    const message = decodeDesECB(msg.data, key);
-    console.log('mensaje recibido ', msg.data);
-    console.log('mensaje desencriptado ', message);
-    socket.broadcast.emit('recibir-mensaje', { function: 1, data: message });
+    switch (msg.function) {
+      case 1:
+        const message = decodeDesECB(msg.data, sharedKey);
+        console.log('mensaje recibido ', msg.data);
+        console.log('mensaje desencriptado ', message);
+        socket.broadcast.emit('recibir-mensaje', {
+          function: 1,
+          data: message,
+        });
+        break;
+      case 2:
+        isAlice = false;
+        othersKey = msg.data.y;
+        console.log(
+          'se inicio una comunicacion por parte de alice con llave publica ',
+          othersKey
+        );
+        socket.broadcast.emit('set-bob', msg.data.y);
+        break;
+      case 3:
+        othersKey = msg.data.y;
+        console.log('se recibio la llave publica de bob ', othersKey);
+        computeSharedKey();
+        socket.broadcast.emit('shared-key', sharedKey);
+        break;
+      default:
+        return;
+    }
   });
 });
 
@@ -47,13 +72,12 @@ const ioc = require('socket.io-client');
 
 // Se usa para ENVIAR mensajes
 var socketOut = null;
-var key = null;
 
 // Funcion para encriptar
 const encodeDesECB = (textToEncode, keyString) => {
   if (keyString === null) return textToEncode;
 
-  var keyBuffer = Buffer.from(keyString);
+  var keyBuffer = Buffer.from(keyString.toString().substring(0, 8));
 
   var cipher = crypto.createCipheriv('des-ecb', keyBuffer, '');
 
@@ -66,7 +90,7 @@ const encodeDesECB = (textToEncode, keyString) => {
 const decodeDesECB = (textToDecode, keyString) => {
   if (keyString === null) return textToDecode;
 
-  const keyBuffer = Buffer.from(keyString);
+  const keyBuffer = Buffer.from(keyString.toString().substring(0, 8));
 
   const cipher = crypto.createDecipheriv('des-ecb', keyBuffer, '');
 
@@ -79,6 +103,41 @@ const decodeDesECB = (textToDecode, keyString) => {
   }
 
   return c;
+};
+
+// Diffie-Hellman
+const ALPHA = bigInt(17123207);
+const Q = bigInt(2426697107);
+var isAlice = null;
+var othersKey = '';
+var secretKey = '';
+var sharedKey = '';
+
+const computePublicKey = (y, a = ALPHA, q = Q) => {
+  console.log('y', y);
+  if (y >= q) {
+    return;
+  }
+  return fastExp(a, y, q);
+};
+
+const computeSharedKey = (a = ALPHA, q = Q) => {
+  const bigIntKey = bigInt(othersKey);
+  const bigSecretKey = bigInt(secretKey);
+  sharedKey = fastExp(bigIntKey, bigSecretKey, q);
+  console.log('la llave compartida es ', sharedKey);
+};
+
+const fastExp = (base, exp, q) => {
+  if (exp.equals(0)) {
+    return 1;
+  } else {
+    if (exp.mod(2) == 0) {
+      return fastExp(base.multiply(base).mod(q), exp.divide(2), q);
+    } else {
+      return base.multiply(fastExp(base, exp.minus(1), q)).mod(q);
+    }
+  }
 };
 
 // Permitimos JSON
@@ -95,19 +154,47 @@ app.get('/conectar', (req, res) => {
 // Enviar mensaje al host al que se encuentra conectado
 // Recibir llave para protocolo diffie helman
 app.post('/enviar_mensaje', (req, res) => {
-  if (req.body.function === 1) {
-    const message = encodeDesECB(req.body.data, key);
-    console.log('mensaje sin encriptar ', req.body.data);
-    console.log('mensaje encriptado ', message);
-    res.status(200).send('Mensaje: ' + message);
+  const message = encodeDesECB(req.body.data, sharedKey);
+  console.log('mensaje sin encriptar ', req.body.data);
+  console.log('mensaje encriptado ', message);
+  res.status(200).send('Mensaje: ' + message);
+  socketOut.emit('Mensaje ASCP', {
+    function: req.body.function,
+    data: message,
+  });
+});
+
+app.post('/init_comm', async (req, res) => {
+  const { y } = req.body.data;
+  const publicKey = computePublicKey(bigInt(y));
+  secretKey = y;
+
+  if (!publicKey) {
+    res.status(400).send('No se recibio una llave valida.');
+  } else {
     socketOut.emit('Mensaje ASCP', {
-      function: req.body.function,
-      data: message,
+      function: 2,
+      data: { q: Q, a: ALPHA, y: publicKey },
     });
-  } else if (req.body.function === 2) {
-    key = req.body.data;
-    console.log('llave ', key);
-    res.send('Llave: ' + req.body.data);
+    isAlice = true;
+    res.sendStatus(200);
+  }
+});
+
+app.post('/key_comp', (req, res) => {
+  const { y } = req.body.data;
+  const publicKey = computePublicKey(bigInt(y));
+  secretKey = y;
+
+  if (!publicKey) {
+    res.status(400).send('No se recibio una llave valida.');
+  } else {
+    socketOut.emit('Mensaje ASCP', {
+      function: 3,
+      data: { q: Q, a: ALPHA, y: publicKey },
+    });
+    computeSharedKey();
+    res.sendStatus(200);
   }
 });
 

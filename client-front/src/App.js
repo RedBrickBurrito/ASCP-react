@@ -27,12 +27,12 @@ function App() {
 
   const handleKeyComp = async () => {
     secretKey.current = keyInputRef.current.value;
-    const response = await fetch(ENDPOINT + '/key_comp', {
+    const response = await fetch(ENDPOINT + "/key_comp", {
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({
         function: 3,
         data: { q: 2426697107, a: 17123207, y: secretKey.current },

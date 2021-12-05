@@ -87,6 +87,25 @@ function App() {
     setValue("");
   };
 
+  const incorrectMac = async (e) => {
+    e.preventDefault();
+    // key = the key both parties have agreed on through diffie-hellman
+    if (!key.current) {
+      alert('Aun no se recibe una llave del otro lado :(');
+      return;
+    }
+    await fetch('http://localhost:2021/mac_incorrecta', {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify({ function: 1, data: value }),
+    });
+    clientSentMessage(value);
+    setValue("");
+  };
+
   const clientSentMessage = (message) => {
     const p = document.createElement("p");
     p.innerHTML = message;
@@ -114,6 +133,9 @@ function App() {
       console.log('se recibio la llave compartida ', sharedKey);
       key.current = sharedKey;
     });
+    socket.current.on('mac incorrecta', ()=> {
+      alert('Se recibio una MAC modificada');
+    })
   }, []);
 
   return (
@@ -176,6 +198,13 @@ function App() {
             className="send-message-button"
             >
               Send
+            </button>
+            <button
+
+              className="send-message-button"
+              onClick={incorrectMac}
+            >
+              WrongMAC
             </button>
         </form>
       </div>

@@ -55,6 +55,9 @@ io.on('connection', (socket) => {
             data: message,
             MAC: encryptedMAC,
           });
+        } else {
+          console.log('MAC no coincide');
+          socket.broadcast.emit('mac incorrecta'); 
         }
         break;
       case 2:
@@ -80,6 +83,7 @@ io.on('connection', (socket) => {
 
 // Cliente
 const ioc = require('socket.io-client');
+const { Socket } = require('socket.io');
 
 // Se usa para ENVIAR mensajes
 var socketOut = null;
@@ -174,6 +178,22 @@ app.get('/conectar', (req, res) => {
 app.post('/enviar_mensaje', (req, res) => {
   MAC = computeMAC(req.body.data);
   console.log('MAC sin encriptar', MAC);
+  const encryptedMAC = encodeDesECB(MAC, sharedKey);
+  const message = encodeDesECB(req.body.data, sharedKey);
+  console.log('mensaje sin encriptar ', req.body.data);
+  console.log('MAC encriptada', MAC);
+  console.log('mensaje encriptado ', message);
+  res.status(200).send('Mensaje: ' + message);
+  socketOut.emit('Mensaje ASCP', {
+    function: req.body.function,
+    data: message,
+    MAC: encryptedMAC,
+  });
+});
+
+app.post('/mac_incorrecta', (req, res) => {
+  MAC = computeMAC('req.body.data');
+  console.log('MAC incorrrecta', MAC);
   const encryptedMAC = encodeDesECB(MAC, sharedKey);
   const message = encodeDesECB(req.body.data, sharedKey);
   console.log('mensaje sin encriptar ', req.body.data);

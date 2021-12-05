@@ -39,12 +39,28 @@ io.on('connection', (socket) => {
     switch (msg.function) {
       case 1:
         const message = decodeDesECB(msg.data, sharedKey);
-        console.log('mensaje recibido ', msg.data);
-        console.log('mensaje desencriptado ', message);
-        socket.broadcast.emit('recibir-mensaje', {
-          function: 1,
-          data: message,
-        });
+        MAC = computeMAC(message);
+        const decodedMAC = decodeDesECB(msg.MAC, sharedKey);
+        const encryptedMAC = msg.MAC;
+
+        console.log('Mensaje', message);
+        console.log('MAC calculada', MAC);
+        console.log('Mensaje MAC encriptado', encryptedMAC);
+        console.log('Mensaje  MAC desencriptado', decodedMAC);
+
+        if (decodedMAC === MAC) {
+          console.log('mensaje recibido ', msg.data);
+          console.log('mensaje desencriptado ', message);
+
+          socket.broadcast.emit('recibir-mensaje', {
+            function: 1,
+            data: message,
+            MAC: encryptedMAC,
+          });
+        } else {
+          console.log('MAC no coincide');
+          socket.broadcast.emit('mac incorrecta');
+        }
         break;
       case 2:
         isAlice = false;
@@ -69,6 +85,7 @@ io.on('connection', (socket) => {
 
 // Cliente
 const ioc = require('socket.io-client');
+const { Socket } = require('socket.io');
 
 // Se usa para ENVIAR mensajes
 var socketOut = null;
@@ -112,6 +129,7 @@ var isAlice = null;
 var othersKey = '';
 var secretKey = '';
 var sharedKey = '';
+var MAC = '';
 
 const computePublicKey = (y, a = ALPHA, q = Q) => {
   console.log('y', y);
@@ -126,6 +144,12 @@ const computeSharedKey = (a = ALPHA, q = Q) => {
   const bigSecretKey = bigInt(secretKey);
   sharedKey = fastExp(bigIntKey, bigSecretKey, q);
   console.log('la llave compartida es ', sharedKey);
+};
+
+const computeMAC = (msg) => {
+  var shasum = crypto.createHmac('sha1', sharedKey.value.toString());
+  shasum.update(msg);
+  return shasum.digest('base64');
 };
 
 const fastExp = (base, exp, q) => {
@@ -154,13 +178,34 @@ app.get('/conectar', (req, res) => {
 // Enviar mensaje al host al que se encuentra conectado
 // Recibir llave para protocolo diffie helman
 app.post('/enviar_mensaje', (req, res) => {
+  MAC = computeMAC(req.body.data);
+  console.log('MAC sin encriptar', MAC);
+  const encryptedMAC = encodeDesECB(MAC, sharedKey);
   const message = encodeDesECB(req.body.data, sharedKey);
   console.log('mensaje sin encriptar ', req.body.data);
+  console.log('MAC encriptada', MAC);
   console.log('mensaje encriptado ', message);
   res.status(200).send('Mensaje: ' + message);
   socketOut.emit('Mensaje ASCP', {
     function: req.body.function,
     data: message,
+    MAC: encryptedMAC,
+  });
+});
+
+app.post('/mac_incorrecta', (req, res) => {
+  MAC = computeMAC('req.body.data');
+  console.log('MAC incorrrecta', MAC);
+  const encryptedMAC = encodeDesECB(MAC, sharedKey);
+  const message = encodeDesECB(req.body.data, sharedKey);
+  console.log('mensaje sin encriptar ', req.body.data);
+  console.log('MAC encriptada', MAC);
+  console.log('mensaje encriptado ', message);
+  res.status(200).send('Mensaje: ' + message);
+  socketOut.emit('Mensaje ASCP', {
+    function: req.body.function,
+    data: message,
+    MAC: encryptedMAC,
   });
 });
 

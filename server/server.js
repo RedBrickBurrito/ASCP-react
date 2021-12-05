@@ -43,6 +43,8 @@ io.on('connection', (socket) => {
         const decodedMAC = decodeDesECB(msg.MAC, sharedKey);
         const encryptedMAC = msg.MAC;
 
+        console.log('Mensaje', message);
+        console.log('MAC calculada', MAC);
         console.log('Mensaje MAC encriptado', encryptedMAC);
         console.log('Mensaje  MAC desencriptado', decodedMAC);
 
@@ -57,7 +59,7 @@ io.on('connection', (socket) => {
           });
         } else {
           console.log('MAC no coincide');
-          socket.broadcast.emit('mac incorrecta'); 
+          socket.broadcast.emit('mac incorrecta');
         }
         break;
       case 2:
@@ -145,7 +147,7 @@ const computeSharedKey = (a = ALPHA, q = Q) => {
 };
 
 const computeMAC = (msg) => {
-  var shasum = crypto.createHash('sha1');
+  var shasum = crypto.createHmac('sha1', sharedKey.value.toString());
   shasum.update(msg);
   return shasum.digest('base64');
 };
